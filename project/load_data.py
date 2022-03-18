@@ -28,7 +28,7 @@ def load_data_from_mat(config=""):
     data_dict = {k: v for k, v in data_dict.items() if k.startswith('00/')}
 
     # create dataset and prepare
-    train_ds = tf.data.Dataset.from_tensor_slices((data_dict.keys(), data_dict.values()))
+    train_ds = tf.data.Dataset.from_tensor_slices((data_dict.keys(), data_dict.values())).take(100)
     train_ds = train_ds.apply(prepare_data)
 
     return train_ds
@@ -54,6 +54,8 @@ def load_data_from_csv(config=""):
 def prepare_data(data):
     # read image from file path
     data = data.map(read_image)
+    # augment data
+    data = data.map(augment)
     # run image normalization
     data = data.map(lambda img, label: (img/128 - 1, label))
     # create onehot encoded labels
@@ -62,7 +64,7 @@ def prepare_data(data):
     data = data.cache()
     # shuffle, batch, prefetch
     data = data.shuffle(1000)
-    data = data.batch(64)
+    data = data.batch(4)
     data = data.prefetch(tf.data.experimental.AUTOTUNE)
 
     return data
@@ -103,12 +105,16 @@ def int2onehot(img, int_label):
 
 def read_image(image_file, label):
     # TODO: get path from config file
-    directory = '/home/ml/tensorflow/project/dataset/imdb'
+    directory = '/home/ml/tensorflow/project/dataset/imdb/'
     file_path = directory + image_file
     image = tf.io.read_file(file_path)
-    image = tf.image.decode_image(image, channels=3, dtype=tf.float32)
+    image = tf.image.decode_jpeg(image, channels=3)
 
     return image, label
 
 
-def augment(img, label): pass
+def augment(img, label): 
+    # TODO: do this properly
+    image = tf.image.resize(img, [375, 375])
+    # image = tf.compat.v1.image.resize(img, [375, 375])
+    return image, label
