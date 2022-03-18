@@ -115,6 +115,6 @@ def read_image(image_file, label):
 
 def augment(img, label): 
     # TODO: do this properly
-    image = tf.image.resize(img, [375, 375])
+    image = tf.image.resize(img, [256, 256])
     # image = tf.compat.v1.image.resize(img, [375, 375])
     return image, label

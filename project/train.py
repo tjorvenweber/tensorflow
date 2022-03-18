@@ -28,7 +28,7 @@ def train():
     generator, discriminator = Generator(), Discriminator()
 
     # set up optimizer
-    learning_rate = 0.001
+    learning_rate = 0.0001
     optimizer = tf.keras.optimizers.Adam(learning_rate)
     num_epochs = 2
     train_iters = 50
@@ -46,6 +46,8 @@ def train():
         test_images.append(image[1, :, :, :])
         test_images.append(image[2, :, :, :])
         test_images.append(image[3, :, :, :])
+
+    # print(test_images[0])
 
     plt.figure(figsize=(25, 25))
 
@@ -89,6 +91,8 @@ def train():
         # visualize
         images = generator(fixed_noise, False)
         plt.figure(figsize=(25, 25))
+
+        # print(images[0])
 
         for i in range(len(images)):
             ax1 = plt.subplot(2, 10, i+1)

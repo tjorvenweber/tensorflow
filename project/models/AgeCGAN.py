@@ -35,7 +35,12 @@ class Generator(tf.keras.Model):
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation(tf.nn.relu),
 
-            # 128 x 128 x 3
+            # 128 x 128 x 32
+            tf.keras.layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same"),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Activation(tf.nn.relu),
+
+            # 256 x 256 x 3
             tf.keras.layers.Conv2DTranspose(3, kernel_size=4, strides=2, padding="same"),
             tf.keras.layers.Activation(tf.nn.tanh)
         ]
@@ -61,8 +66,13 @@ class Discriminator(tf.keras.Model):
 
         # TODO: create blocks to remove duplicate code
         self.disc = [
+            # 128 x 128 x 32
+            tf.keras.layers.Conv2D(32, kernel_size=4, strides=2, padding="same"),
+            tf.keras.layers.LeakyReLU(0.2),
+
             # 64 x 64 x 64
             tf.keras.layers.Conv2D(64, kernel_size=4, strides=2, padding="same"),
+            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.LeakyReLU(0.2),
 
             # 32 x 32 x 128
