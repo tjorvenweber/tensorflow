@@ -1,3 +1,4 @@
+from cProfile import label
 import tensorflow as tf 
 
 # TODO: add typing
@@ -46,7 +47,10 @@ class Generator(tf.keras.Model):
         ]
 
 
-    def __call__(self, x,  training_flag):
+    def __call__(self, x, y, training_flag):
+
+        # concatenate age label and input
+        x = tf.concat([x, y], axis=1)
 
         for gen_layer in self.gen:
 
@@ -101,7 +105,24 @@ class Discriminator(tf.keras.Model):
         ]
 
 
-    def __call__(self, x,  training_flag):
+    def __call__(self, x, y, training_flag):
+
+
+        # TODO: MAKE PRETTIER; outsource; CORRECT?!
+
+        # concatenate age label to first conv layer
+        y_exp = tf.keras.backend.expand_dims(y, -1)
+        y_exp = tf.keras.backend.expand_dims(y_exp, -1)
+        y_tiled = tf.keras.backend.tile(y_exp, [1, 42, 256, 1])
+
+        y_rest = [y_label[:4] for y_label in y]
+        y_rest = tf.keras.backend.expand_dims(y_rest, -1)
+        y_rest = tf.keras.backend.expand_dims(y_rest, -1)
+        y_rest = tf.keras.backend.tile(y_rest, [1, 1, 256, 1])
+
+        label = tf.concat([y_tiled, y_rest], axis=1)
+        x = tf.concat([x, label], axis=-1)
+        
 
         for disc_layer in self.disc:
 

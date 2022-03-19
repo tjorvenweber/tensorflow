@@ -1,8 +1,9 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import random
 
 from models.AgeCGAN import Generator, Discriminator
-from load_data import load_data_from_mat
+from load_data import load_data_from_mat, int2onehot
 
 # TODO: document command line parameters in README
 # TODO: method for saving trained model
@@ -30,13 +31,14 @@ def train():
     # set up optimizer
     learning_rate = 0.0001
     optimizer = tf.keras.optimizers.Adam(learning_rate)
-    num_epochs = 2
+    num_epochs = 100
     train_iters = 50
 
     flag = True
-    step = 0
+    epoch = 0
 
     fixed_noise = tf.random.normal([4, 10])
+    fixed_labels = [int2onehot(None, y)[1] for y in [0, 1, 2, 3]] 
 
     # visualize
     test_data = train_ds.take(1)
@@ -46,8 +48,6 @@ def train():
         test_images.append(image[1, :, :, :])
         test_images.append(image[2, :, :, :])
         test_images.append(image[3, :, :, :])
-
-    # print(test_images[0])
 
     plt.figure(figsize=(25, 25))
 
@@ -60,23 +60,31 @@ def train():
     plt.show()
 
 
-    while step <= train_iters and flag:
+    while epoch <= num_epochs and flag:
 
-        print("step: {}".format(step))
+        print("epoch: {}".format(epoch))
+        epoch += 1
 
         for real_image, real_label in train_ds:
-            step += 1
+            # step += 1
 
             # TODO: Batchsize, z dimension from config
             # TODO: Batchsize and z_dim in paper
+
+            # TODO: make prettier
             z = tf.random.normal([4, 10])
-            # TODO: age label
+            random_age = random.sample(range(0, 61), 4)
+            fake_label = []
+            for age in random_age:
+                fake_label.append(int2onehot(None, age)[1])
+
 
             with tf.GradientTape() as G_tape, tf.GradientTape() as D_tape:
-                fake_image = generator(z, True)
-                fake_data_pred = discriminator(fake_image, True)
-                real_data_pred = discriminator(real_image, True)
+                fake_image = generator(z, fake_label, True)
+                fake_data_pred = discriminator(fake_image, fake_label, True)
+                real_data_pred = discriminator(real_image, real_label, True)
 
+                # TODO: add conditional probabilities for age
                 D_loss = -tf.math.reduce_mean(tf.math.log(real_data_pred) + tf.math.log(1 - fake_data_pred))
                 G_loss = tf.math.reduce_mean(tf.math.log(1 - fake_data_pred))
                 # print(D_loss, G_loss)
@@ -103,7 +111,7 @@ def train():
         plt.show()
 
 
-        if (step + 1) == train_iters:
+        if (epoch + 1) == num_epochs:
             flag = False
             break
 

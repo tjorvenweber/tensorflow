@@ -28,7 +28,7 @@ def load_data_from_mat(config=""):
     data_dict = {k: v for k, v in data_dict.items() if k.startswith('00/')}
 
     # create dataset and prepare
-    train_ds = tf.data.Dataset.from_tensor_slices((data_dict.keys(), data_dict.values())).take(100)
+    train_ds = tf.data.Dataset.from_tensor_slices((data_dict.keys(), data_dict.values())).take(1000)
     train_ds = train_ds.apply(prepare_data)
 
     return train_ds
