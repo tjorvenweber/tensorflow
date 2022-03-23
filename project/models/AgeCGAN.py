@@ -14,6 +14,7 @@ class Generator(tf.keras.Model):
         self.gen = [
             # 4 x 4 x 1024
             tf.keras.layers.Dense(units=(4*4*1024)),
+            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Reshape((4, 4, 1024)),
 
             # 8 x 8 x 512
@@ -36,12 +37,7 @@ class Generator(tf.keras.Model):
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation(tf.nn.relu),
 
-            # 128 x 128 x 32
-            tf.keras.layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding="same"),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation(tf.nn.relu),
-
-            # 256 x 256 x 3
+            # 128 x 128 x 3
             tf.keras.layers.Conv2DTranspose(3, kernel_size=4, strides=2, padding="same"),
             tf.keras.layers.Activation(tf.nn.tanh)
         ]
@@ -70,13 +66,8 @@ class Discriminator(tf.keras.Model):
 
         # TODO: create blocks to remove duplicate code
         self.disc = [
-            # 128 x 128 x 32
-            tf.keras.layers.Conv2D(32, kernel_size=4, strides=2, padding="same"),
-            tf.keras.layers.LeakyReLU(0.2),
-
-            # 64 x 64 x 64
+            # 128 x 128 x 64
             tf.keras.layers.Conv2D(64, kernel_size=4, strides=2, padding="same"),
-            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.LeakyReLU(0.2),
 
             # 32 x 32 x 128
@@ -113,12 +104,12 @@ class Discriminator(tf.keras.Model):
         # concatenate age label to first conv layer
         y_exp = tf.keras.backend.expand_dims(y, -1)
         y_exp = tf.keras.backend.expand_dims(y_exp, -1)
-        y_tiled = tf.keras.backend.tile(y_exp, [1, 42, 256, 1])
+        y_tiled = tf.keras.backend.tile(y_exp, [1, 21, 128, 1])
 
-        y_rest = [y_label[:4] for y_label in y]
+        y_rest = [y_label[:2] for y_label in y]
         y_rest = tf.keras.backend.expand_dims(y_rest, -1)
         y_rest = tf.keras.backend.expand_dims(y_rest, -1)
-        y_rest = tf.keras.backend.tile(y_rest, [1, 1, 256, 1])
+        y_rest = tf.keras.backend.tile(y_rest, [1, 1, 128, 1])
 
         label = tf.concat([y_tiled, y_rest], axis=1)
         x = tf.concat([x, label], axis=-1)

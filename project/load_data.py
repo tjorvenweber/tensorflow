@@ -12,7 +12,7 @@ from typing import List
 def load_data_from_mat(config=""):
     
     # TODO: path from config file
-    data = scipy.io.loadmat('/home/ml/tensorflow/project/dataset/imdb/imdb.mat')['imdb'][0][0]
+    data = scipy.io.loadmat('/tmp/imdb_crop/imdb.mat')['imdb'][0][0]
     dob = data[0][0]
     photo_taken = data[1][0]
     age_labels = get_age(dob, photo_taken)
@@ -22,13 +22,14 @@ def load_data_from_mat(config=""):
     file_names = []
     for name in files_array:
         file_names.append(name[0])
+    print(len(file_names))
 
     # get only images from 00 folder -> TODO: remove
     data_dict = dict(zip(file_names, age_labels))
-    data_dict = {k: v for k, v in data_dict.items() if k.startswith('00/')}
+    # data_dict = {k: v for k, v in data_dict.items() if k.startswith('00/')}
 
     # create dataset and prepare
-    train_ds = tf.data.Dataset.from_tensor_slices((data_dict.keys(), data_dict.values())).take(1000)
+    train_ds = tf.data.Dataset.from_tensor_slices((data_dict.keys(), data_dict.values())).take(10000)
     train_ds = train_ds.apply(prepare_data)
 
     return train_ds
@@ -64,7 +65,7 @@ def prepare_data(data):
     data = data.cache()
     # shuffle, batch, prefetch
     data = data.shuffle(1000)
-    data = data.batch(4)
+    data = data.batch(50)
     data = data.prefetch(tf.data.experimental.AUTOTUNE)
 
     return data
@@ -105,7 +106,7 @@ def int2onehot(img, int_label):
 
 def read_image(image_file, label):
     # TODO: get path from config file
-    directory = '/home/ml/tensorflow/project/dataset/imdb/'
+    directory = '/tmp/imdb_crop/'
     file_path = directory + image_file
     image = tf.io.read_file(file_path)
     image = tf.image.decode_jpeg(image, channels=3)
@@ -115,6 +116,6 @@ def read_image(image_file, label):
 
 def augment(img, label): 
     # TODO: do this properly
-    image = tf.image.resize(img, [256, 256])
+    image = tf.image.resize(img, [128, 128])
     # image = tf.compat.v1.image.resize(img, [375, 375])
     return image, label
