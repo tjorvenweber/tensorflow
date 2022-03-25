@@ -1,9 +1,6 @@
 import csv
 import os.path
 
-
-
-
 with open("yiminglin_csvs/imdb_train_new_1024.csv") as csvdatei:
     csv_reader_object = csv.reader(csvdatei)
 
@@ -36,8 +33,6 @@ with open("yiminglin_csvs/imdb_train_new_1024.csv") as csvdatei:
             else:
                 nr_of_deletedPics += 1
                 print ("nope")
-
-
 
         zeilennummer += 1
 

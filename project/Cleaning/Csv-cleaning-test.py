@@ -1,9 +1,6 @@
 import csv
 import os.path
 
-
-
-
 with open("yiminglin_csvs/imdb_test_new_1024.csv") as csvdatei:
     csv_reader_object = csv.reader(csvdatei)
 

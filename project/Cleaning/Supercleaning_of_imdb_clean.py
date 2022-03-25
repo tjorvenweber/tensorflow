@@ -4,7 +4,6 @@ import os
 from PIL import Image
 import PIL
 
-
 ##make some directories to save the cleaned dataset in
 
 #make directory, where we want to save the super cleaned imdb
@@ -26,7 +25,6 @@ gettingpath = "./imdb-clean-1024/"
 #temporary folder for faces that have been detected on one picture
 os.mkdir("SuperCleaning_of_imdb_clean/temp")
 temppath = "./SuperCleaning_of_imdb_clean/temp/"
-
 
 
 # several detectors test whether they can detect a face in a picture
@@ -80,9 +78,6 @@ def detect_faces(picturename, foldername, gettingfrom):
         badpic = badpic.save(savingpath_bad_noFace + foldername + "/" + picturename)
 
 
-
-
-
 #check whether all detected faces in the temp folder are from the same person
 def verify_faces(picturepath, picturename, foldername):
     allTheSameFace = True;
@@ -97,7 +92,6 @@ def verify_faces(picturepath, picturename, foldername):
             if (not(result["verified"])):
                 allTheSameFace = False
 
-
     #sort the picture into the matching folder
     if allTheSameFace:
         print("This picture contains only 1 Face:)\n")
@@ -107,7 +101,6 @@ def verify_faces(picturepath, picturename, foldername):
         print("MULTIPLE FACES DETECTED\n")
         badpic = Image.open(picturepath)
         badpic = badpic.save(savingpath_bad_multipleFaces + foldername + "/" + picturename)
-
 
 
 #take all the pictures of the folders and let the face detection begin
@@ -121,7 +114,6 @@ with os.scandir(gettingpath) as folders:
         with os.scandir(bigger_gettingpath) as entries:
             for entry in entries:
                 detect_faces(entry.name, folder.name, bigger_gettingpath)
-
 
 #temp Ordner aufräumen
 with os.scandir("./SuperCleaning_of_imdb_clean/temp") as temps:

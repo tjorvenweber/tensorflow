@@ -5,14 +5,11 @@ import scipy.io
 from datetime import datetime, timedelta
 from typing import List
 
-# TODO: How and where to put this in the file structure
-# TODO: clean data -> invalid dob
-
 # MATLAB DATA STRUCTURE: dict['imdb'] -> array[dob, photo_taken, filename, gender, name, face_location, face_score, second_face_score, celeb_name, celeb_id]
 def load_data_from_mat(config=""):
     
     # TODO: path from config file
-    data = scipy.io.loadmat('/tmp/imdb_crop/imdb.mat')['imdb'][0][0]
+    data = scipy.io.loadmat('/notebooks/data/tmp/wiki_crop/wiki.mat')['wiki'][0][0]
     dob = data[0][0]
     photo_taken = data[1][0]
     age_labels = get_age(dob, photo_taken)
@@ -24,12 +21,27 @@ def load_data_from_mat(config=""):
         file_names.append(name[0])
     print(len(file_names))
 
+    face_score = data[6][0].tolist()
+    second_face_score = data[7][0].tolist()
+
+    df = pd.DataFrame(
+        list(zip(file_names, age_labels, face_score, second_face_score)),
+        columns=['file_names', 'age_labels', 'face_scores', 'second_face_scores']
+    )
+
+    # filter dataframe: second face score = NaN when no other face detected
+    df = df[df['second_face_scores'].isna()]
+
+    # filter dataframe: the higher the face score, the 'better' the face image
+    good_faces = df['face_scores'] > 3
+    df = df[good_faces]
+
     # get only images from 00 folder -> TODO: remove
-    data_dict = dict(zip(file_names, age_labels))
+    #data_dict = dict(zip(file_names, age_labels))
     # data_dict = {k: v for k, v in data_dict.items() if k.startswith('00/')}
 
     # create dataset and prepare
-    train_ds = tf.data.Dataset.from_tensor_slices((data_dict.keys(), data_dict.values())).take(10000)
+    train_ds = tf.data.Dataset.from_tensor_slices((df['file_names'], df['age_labels'])).take(10000)
     train_ds = train_ds.apply(prepare_data)
 
     return train_ds
@@ -39,7 +51,7 @@ def load_data_from_csv(config=""):
 
     # TODO: path from config file
     directory = '/home/ml/tensorflow/project/dataset/wiki'
-    train_df = pf.read_csv(directory + 'imdb_train_new_1024.csv')
+    train_df = pd.read_csv(directory + 'imdb_train_new_1024.csv')
 
     file_names = train_df['filename'].values
     age_labels = train_df['age'].values
@@ -106,7 +118,7 @@ def int2onehot(img, int_label):
 
 def read_image(image_file, label):
     # TODO: get path from config file
-    directory = '/tmp/imdb_crop/'
+    directory = '/notebooks/data/tmp/wiki_crop/'
     file_path = directory + image_file
     image = tf.io.read_file(file_path)
     image = tf.image.decode_jpeg(image, channels=3)
