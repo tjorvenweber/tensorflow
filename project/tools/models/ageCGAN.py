@@ -1,8 +1,6 @@
 import tensorflow as tf 
 
 # TODO: add typing
-# TODO: change first layers of generator to conv(kernel_size=1), batchnorm and relu
-# TODO: initialize model weights
 
 """
 Generator that creates synthetic images
@@ -13,41 +11,42 @@ class Generator(tf.keras.Model):
         super(Generator, self).__init__()
 
         dropout_rate = 0.2
+        initializer = tf.keras.initializers.RandomNormal(mean=0., stddev=0.02)
 
         self.loss_function = tf.keras.losses.BinaryCrossentropy()
 
         # TODO: create blocks to remove duplicate code
         self.gen = [
             # 4 x 4 x 1024
-            tf.keras.layers.Dense(units=(4*4*1024)),
-            #tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dense(units=(4*4*2048)),
+            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation(tf.nn.relu),
             tf.keras.layers.Dropout(dropout_rate),
             
-            tf.keras.layers.Reshape((4, 4, 1024)),
+            tf.keras.layers.Reshape((4, 4, 2048)),
 
             # 8 x 8 x 512
-            tf.keras.layers.Conv2DTranspose(512, kernel_size=5, strides=2, padding="same"),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Conv2DTranspose(1024, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
+            tf.keras.layers.BatchNormalization(center=1.0, scale=0.02),
             tf.keras.layers.Activation(tf.nn.relu),
 
             # 16 x 16 x 256
-            tf.keras.layers.Conv2DTranspose(256, kernel_size=5, strides=2, padding="same"),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Conv2DTranspose(512, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
+            tf.keras.layers.BatchNormalization(center=1.0, scale=0.02),
             tf.keras.layers.Activation(tf.nn.relu),
 
             # 32 x 32 x 128
-            tf.keras.layers.Conv2DTranspose(128, kernel_size=5, strides=2, padding="same"),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Conv2DTranspose(256, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
+            tf.keras.layers.BatchNormalization(center=1.0, scale=0.02),
             tf.keras.layers.Activation(tf.nn.relu),
 
             # 64 x 64 x 64
-            tf.keras.layers.Conv2DTranspose(64, kernel_size=5, strides=2, padding="same"),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
+            tf.keras.layers.BatchNormalization(center=1.0, scale=0.02),
             tf.keras.layers.Activation(tf.nn.relu),
 
             # 128 x 128 x 3
-            tf.keras.layers.Conv2DTranspose(3, kernel_size=5, strides=2, padding="same"),
+            tf.keras.layers.Conv2DTranspose(3, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
             tf.keras.layers.Activation(tf.nn.tanh)
         ]
 
@@ -76,32 +75,33 @@ class Discriminator(tf.keras.Model):
         super(Discriminator, self).__init__()
 
         self.loss_function = tf.keras.losses.BinaryCrossentropy()
+        initializer = tf.keras.initializers.RandomNormal(mean=0., stddev=0.02)
 
         # TODO: create blocks to remove duplicate code
         self.disc = [
-            # 128 x 128 x 64
-            tf.keras.layers.Conv2D(64, kernel_size=3, strides=2, padding="same"),
+            # 64 x 64 x 64
+            tf.keras.layers.Conv2D(64, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
             tf.keras.layers.LeakyReLU(0.2),
 
             # 32 x 32 x 128
-            tf.keras.layers.Conv2D(128, kernel_size=3, strides=2, padding="same"),
+            tf.keras.layers.Conv2D(128, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.LeakyReLU(0.2),
 
             # 16 x 16 x 256
-            tf.keras.layers.Conv2D(256, kernel_size=3, strides=2, padding="same"),
+            tf.keras.layers.Conv2D(256, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.LeakyReLU(0.2),
 
             # 8 x 8 x 512
-            tf.keras.layers.Conv2D(512, kernel_size=3, strides=2, padding="same"),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.LeakyReLU(0.2),
+            # tf.keras.layers.Conv2D(512, kernel_size=3, strides=2, padding="same", kernel_initializer=initializer),
+            # tf.keras.layers.BatchNormalization(),
+            # tf.keras.layers.LeakyReLU(0.2),
 
             # 4 x 4 x 1024
-            tf.keras.layers.Conv2D(1024, kernel_size=3, strides=2, padding="same"),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.LeakyReLU(0.2),
+            # tf.keras.layers.Conv2D(1024, kernel_size=3, strides=2, padding="same", kernel_initializer=initializer),
+            # tf.keras.layers.BatchNormalization(),
+            # tf.keras.layers.LeakyReLU(0.2),
 
             # 1 x 1 x 1
             tf.keras.layers.Flatten(),
@@ -114,7 +114,7 @@ class Discriminator(tf.keras.Model):
     def __call__(self, x, y, training_flag):
 
 
-        # TODO: MAKE PRETTIER; outsource; CORRECT?!
+        # TODO: make prettier, outsource
 
         # concatenate age label to first conv layer
         y_exp = tf.keras.backend.expand_dims(y, -1)

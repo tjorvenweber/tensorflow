@@ -1,29 +1,27 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import numpy as np
 import random
+import argparse
 
 from tools.models.ageCGAN import Generator, Discriminator
-from tools.models.encoder import Encoder
+# from tools.models.encoder import Encoder
 from tools.load_data import load_data_from_mat, int2onehot
-from tools.losses import euclidean_dist
+# from tools.losses import euclidean_dist
 
 # TODO: document command line parameters in README
 
-# TODO
-def init_weights(): pass
+def train_GAN():
 
-# TODO: config, writer, logger, args
-def train():
-    # TODO: set up seeds, device (cuda), augmentations (e.g. cropping/resizing)
+    # TODO: params: config, writer, logger, args
     # TODO: set up logging/tensorboard
     # TODO: set up metrics
-    # TODO: outsource optimizers and loss + get params from config
-    print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+    # TODO: get optimizer params etc. from config
 
     """
     Load data
     """
-    # TODO test dataset ?
+    # TODO test dataset 
     train_ds = load_data_from_mat()
 
     """
@@ -39,13 +37,21 @@ def train():
     generator, discriminator = Generator(), Discriminator()
 
     fixed_noise = tf.random.normal([50, 100])
-    #fixed_labels = [int2onehot(None, y)[1] for y in [0, 1, 2, 3]] 
+    # fixed_labels = [int2onehot(None, y)[1] for y in [0, 1, 2, 3]] 
+    random_age = random.sample(range(0, 61), 50)
+    fixed_labels = [int2onehot(None, age)[1] for age in random_age]
     flag = True
     epoch = 0
 
     """
     Train generator and discriminator
     """
+
+    G_losses = []
+    D_losses = []
+    train_G_losses = []
+    train_D_losses = []
+
     while epoch <= n_epochs and flag:
         print("epoch: {}".format(epoch))
         epoch += 1
@@ -55,30 +61,27 @@ def train():
             batch += 1
 
             # TODO: Batchsize, z dimension from config
-            # TODO: Batchsize and z_dim in paper
-
             # TODO: make prettier
             z = tf.random.normal([50, 100])
             random_age = random.sample(range(0, 61), 50)
-            fake_label = []
-            for age in random_age:
-                fake_label.append(int2onehot(None, age)[1])
+            fake_label = [int2onehot(None, age)[1] for age in random_age]
+            '''for age in random_age:
+                fake_label.append(int2onehot(None, age)[1])'''
 
             with tf.GradientTape() as generator_tape, tf.GradientTape() as discriminator_tape:
-                # train generator
+                # get predictions
                 fake_image = generator(z, fake_label, True)
-                tf.image.resize(fake_image, [64,64])
-
-                # train discriminator
                 fake_data_pred = discriminator(fake_image, fake_label, True)
                 real_data_pred = discriminator(real_image, real_label, True)
 
-                # TODO: add conditional probabilities for age
                 # calculate generator and discriminator loss
                 generator_loss = generator.loss_function(tf.ones_like(fake_data_pred), fake_data_pred)
                 discriminator_loss = (discriminator.loss_function(tf.ones_like(real_data_pred), real_data_pred) + discriminator.loss_function(tf.zeros_like(fake_data_pred), fake_data_pred)) / 2
                 #discriminator_loss = -tf.math.reduce_mean(tf.math.log(real_data_pred) + tf.math.log(1 - fake_data_pred))
                 #generator_loss = tf.math.reduce_mean(tf.math.log(1 - fake_data_pred))
+
+                G_losses.append(generator_loss)
+                D_losses.append(discriminator_loss)
 
                 # optimize generator and discriminator
                 generator_gradients = generator_tape.gradient(generator_loss, generator.trainable_variables)
@@ -86,43 +89,55 @@ def train():
                 discriminator_gradients = discriminator_tape.gradient(discriminator_loss, discriminator.trainable_variables)
                 optimizer.apply_gradients(zip(discriminator_gradients, discriminator.trainable_variables))
 
-                if batch % 50 == 0:
-                    print("batch {}".format(batch))
-                    print(discriminator_loss, generator_loss)
-
-            """
-            Generate and save images
-            """
             if batch % 50 == 0:
-                random_age = random.sample(range(0, 61), 50)
-                fake_label = []
-                for age in random_age:
-                    fake_label.append(int2onehot(None, age)[1])
+                print("batch {}".format(batch))
+                print(discriminator_loss, generator_loss)
 
-                # visualize
-                images = generator(fixed_noise, fake_label, False)
-                #plt.figure(figsize=(25, 25))
+                """
+                Generate and save images
+                """
+            # if batch % 50 == 0:
+            #     random_age = random.sample(range(0, 61), 50)
+            #     fake_label = []
+            #     for age in random_age:
+            #         fake_label.append(int2onehot(None, age)[1])
 
-                #for i in range(5):
-                #    ax1 = plt.subplot(2, 10, i+1)
-                #    plt.imshow(tf.squeeze(images[i]))
-                #    ax1.get_xaxis().set_visible(False)
-                #    ax1.get_yaxis().set_visible(False)
-
-                # # plt.show()
-                #plt.savefig('/content/drive/MyDrive/faceAging/epoch_' + str(epoch) + '.png')
-                #plt.close()
-
+                # visualize images
+                images = generator(fixed_noise, fixed_labels, False)
                 for i in range(5):
-                    tf.keras.utils.save_img('./output/epoch_' + str(epoch) + '_' + str(i) + '.png', images[i])
+                    # tf.keras.utils.save_img('./output/epoch_' + str(epoch) + '_' + str(i) + '.png', images[i])
+                    tf.keras.utils.save_img('/content/drive/MyDrive/faceAging/images/0/epoch_' + str(epoch) + '_' + str(i) + '.png', images[i])
+
+
+        # visualize loss
+        train_G_losses.append(np.mean(G_losses))
+        train_D_losses.append(np.mean(D_losses))
+
+        # TODO: outsource/tensorboard
+        plt.figure()
+        line1, = plt.plot(train_G_losses)
+        line2, = plt.plot(train_D_losses)
+        plt.xlabel("Training steps")
+        plt.ylabel("Loss")
+        plt.legend((line1,line2),("G Loss","D Loss"))
+        plt.title("GAN Loss")
+        # plt.savefig('./output/loss.png')
+        plt.savefig('/content/drive/MyDrive/faceAging/loss_plots/loss.png')
+        plt.close()
+        
+
+        # save model weights
+        # generator.save_weights('./weights/gen_weights')
+        # discriminator.save_weights('./weights/disc_weights')
+
 
         if (epoch + 1) == n_epochs:
             flag = False
             break
-        
-        # save generator weights
-        generator.save_weights('./weights/gen_weights')
 
+    
+
+def train_encoder():
     """
     Hyperparameters for encoder
     """
@@ -187,5 +202,22 @@ def train():
                 encoder_gradients = encoder_tape.gradient(encoder_loss, encoder.trainable_variables)
                 optimizer.apply_gradients(zip(encoder_gradients, encoder.trainable_variables))
 
+
+
 if __name__ == "__main__":
-    train()
+
+    parser = argparse.ArgumentParser(description="config")
+    parser.add_argument(
+        "--model",
+        nargs="?",
+        type=str,
+        default="AgeCGAN",
+        help="Model to train"
+    )
+    args = parser.parse_args()
+    if args.model == "AgeCGAN":
+        train_GAN()
+    elif args.model == "Encoder":
+        train_encoder()
+    else: pass
+        # Not implemented error
