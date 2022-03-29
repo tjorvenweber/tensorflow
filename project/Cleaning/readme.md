@@ -13,10 +13,9 @@ To do the cleaning, enter the following into your commandline:
 
 > python Supercleaning_of_imdb_clean.py
 
-This is the outcome of the cleaning: several directories are made where the pictures will be sorted into.
-- Supercleaning_of_imdb_clean is the folder containing the following subfolders:
-    - imdb_badpics contains 2 folders: noFace and multipleFaces
-    - imdb_superclean contains the cleaned pictures. This is the product of our cleaning process and what we consider our newly cleaned dataset.
+This is the outcome of the cleaning: several directories are made where the pictures will be sorted into. Supercleaning_of_imdb_clean is the folder containing the following subfolders:
+- imdb_badpics contains 2 folders: noFace and multipleFaces
+- imdb_superclean contains the cleaned pictures. This is the product of our cleaning process and what we consider our newly cleaned dataset.
 
 [imdb_clean](https://github.com/yiminglin-ai/imdb-clean) - This is where the original IMDB_clean can be downloaded from. Through this process we have obtained the mentioned "imdb-clean-1024" folder.
 
