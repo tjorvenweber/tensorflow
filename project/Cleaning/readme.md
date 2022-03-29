@@ -36,4 +36,5 @@ Put the cleaning files in the same folder hierarchy as the yiminglin_csvs folder
 
 ## Already cleaned dataset
 
-We also provide you the already cleaned dataset in the zipped folder. It contains the pictures that remained after doing the above.
+We also provide you the already cleaned dataset in a zip-file. It contains the pictures that remained after doing the above.
+It can be found [here](https://myshare.uni-osnabrueck.de/f/c7cc8fd26472494f95d8/).
