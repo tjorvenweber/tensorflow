@@ -42,6 +42,6 @@ def lbfgs_opt(generator, res_net, real_image, real_label, z0):
         lambda z: tfp.math.value_and_gradient(eucl_dist_opt, z),
         initial_position=z0,
         tolerance=1e-8,
-        max_iterations=2
+        max_iterations=5
     )
 

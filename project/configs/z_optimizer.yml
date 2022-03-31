@@ -1,6 +1,6 @@
 training:
-  epochs: 2
-  batch_size: 2
+  epochs: 10
+  batch_size: 1
 optimizer:
   z_optimizer: 
     name: "adam"
