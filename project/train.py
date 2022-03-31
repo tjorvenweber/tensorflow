@@ -104,7 +104,6 @@ def train_GAN(config):
         train_G_losses.append(np.mean(G_losses))
         train_D_losses.append(np.mean(D_losses))
 
-        # TODO: outsource/tensorboard
         plt.figure()
         line1, = plt.plot(train_G_losses)
         line2, = plt.plot(train_D_losses)
@@ -193,7 +192,6 @@ def train_encoder(config):
         # visualize loss
         train_E_losses.append(np.mean(encoder_losses))
 
-        # TODO: outsource/tensorboard
         plt.figure()
         line1 = plt.plot(train_E_losses)
         plt.xlabel("Training steps")
@@ -277,7 +275,6 @@ def optimize_lv(config):
         # visualize loss
         train_E_losses.append(np.mean(encoder_losses))
 
-        # TODO: outsource/tensorboard
         plt.figure()
         line1 = plt.plot(train_E_losses)
         plt.xlabel("Training steps")

@@ -8,15 +8,11 @@ from typing import List
 # MATLAB DATA STRUCTURE: dict['imdb'] -> array[dob, photo_taken, filename, gender, name, face_location, face_score, second_face_score, celeb_name, celeb_id]
 def load_data_from_mat(config):
     
-    # TODO: path from config file
-    # data = scipy.io.loadmat('/notebooks/data/tmp/wiki_crop/wiki.mat')['wiki'][0][0]
-    # data = scipy.io.loadmat('/tmp/imdb_crop/imdb.mat')['imdb'][0][0]
     data = scipy.io.loadmat(config['data']['mat_file'])['imdb'][0][0]
     dob = data[0][0]
     photo_taken = data[1][0]
     age_labels = get_age(dob, photo_taken)
 
-    # TODO: make prettier -> flatten
     files_array = data[2][0]
     file_names = []
     for name in files_array:
@@ -30,9 +26,6 @@ def load_data_from_mat(config):
         columns=['file_names', 'age_labels', 'face_scores', 'second_face_scores']
     )
 
-    data_dict = dict(zip(file_names, age_labels))
-    data_dict = {k: v for k, v in data_dict.items() if k.startswith('00/')}
-
     # filter dataframe: second face score = NaN when no other face detected
     df = df[df['second_face_scores'].isna()]
 
@@ -43,8 +36,7 @@ def load_data_from_mat(config):
     print(df.shape)
 
     # create dataset and prepare
-    # train_ds = tf.data.Dataset.from_tensor_slices((df['file_names'], df['age_labels'])).take(12800)train_ds = tf.data.Dataset.from_tensor_slices((df['file_names'], df['age_labels'])).take(12800)
-    train_ds = tf.data.Dataset.from_tensor_slices((data_dict.keys(), data_dict.values())).take(10)
+    train_ds = tf.data.Dataset.from_tensor_slices((df['file_names'], df['age_labels'])).take(12800)
     train_ds = train_ds.apply(prepare_data)
 
     return train_ds
@@ -89,7 +81,6 @@ def get_age(dob, photo_taken):
 
     age_labels = []
     for date_b, date_p in zip(dob, photo_taken):
-        # TODO: fix
         if date_b < 100000:
             age_labels.append(-1)
         else:
@@ -119,9 +110,6 @@ def int2onehot(img, int_label):
 
 
 def read_image(image_file, label):
-    # TODO: get path from config file
-    # directory = '/notebooks/data/tmp/wiki_crop/'
-    # directory = '/tmp/imdb_crop/'
     directory = './dataset/imdb/'
     file_path = directory + image_file
     image = tf.io.read_file(file_path)
