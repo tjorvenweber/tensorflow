@@ -1,0 +1,17 @@
+training:
+  epochs: 25
+  batch_size: 64
+  z_dimension: 100
+  update_interval: 50
+optimizer:
+  encoder: 
+    name: "adam"
+    learning_rate: 0.0002
+    beta_1: 0.5
+    beta_2: 0.999
+    epsilon: 0.0000001
+data:
+  directory: dataset/imdb/ 
+  mat_file: dataset/imdb/imdb.mat
+  output_path: output/
+  weight_path: weights/

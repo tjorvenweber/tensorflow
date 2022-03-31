@@ -1,7 +1,25 @@
 import tensorflow as tf
 import tensorflow_probability as tfp
+from tensorflow.keras.optimizers import Adam
 
-from losses import euclidean_dist
+from tools.losses import euclidean_dist
+
+
+key2opt = {
+    "adam": Adam
+}
+
+
+def get_optimizer(config, model):
+    if config['optimizer'] is None:
+        return Adam
+
+    else:
+        opt_name = config['optimizer'][model]['name']
+        if opt_name not in key2opt:
+            raise NotImplementedError("Optimizer {} not implemented".format(opt_name))
+
+        return key2opt[opt_name]
 
 def lbfgs_opt(generator, res_net, real_image, real_label, z0):
 

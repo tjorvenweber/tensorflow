@@ -1,7 +1,5 @@
 import tensorflow as tf 
 
-# TODO: add typing
-
 """
 Generator that creates synthetic images
 """
@@ -10,7 +8,6 @@ class Generator(tf.keras.Model):
     def __init__(self) -> None:
         super(Generator, self).__init__()
 
-        dropout_rate = 0.2
         initializer = tf.keras.initializers.RandomNormal(mean=0., stddev=0.02)
 
         self.loss_function = tf.keras.losses.BinaryCrossentropy()
@@ -21,7 +18,6 @@ class Generator(tf.keras.Model):
             tf.keras.layers.Dense(units=(4*4*2048)),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation(tf.nn.relu),
-            tf.keras.layers.Dropout(dropout_rate),
             
             tf.keras.layers.Reshape((4, 4, 2048)),
 
@@ -76,6 +72,7 @@ class Discriminator(tf.keras.Model):
 
         self.loss_function = tf.keras.losses.BinaryCrossentropy()
         initializer = tf.keras.initializers.RandomNormal(mean=0., stddev=0.02)
+        L2_lambda = 0.01
 
         # TODO: create blocks to remove duplicate code
         self.disc = [
@@ -85,28 +82,23 @@ class Discriminator(tf.keras.Model):
 
             # 32 x 32 x 128
             tf.keras.layers.Conv2D(128, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
-            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.LeakyReLU(0.2),
 
             # 16 x 16 x 256
             tf.keras.layers.Conv2D(256, kernel_size=4, strides=2, padding="same", kernel_initializer=initializer),
-            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.LeakyReLU(0.2),
 
             # 8 x 8 x 512
-            # tf.keras.layers.Conv2D(512, kernel_size=3, strides=2, padding="same", kernel_initializer=initializer),
-            # tf.keras.layers.BatchNormalization(),
-            # tf.keras.layers.LeakyReLU(0.2),
+            tf.keras.layers.Conv2D(512, kernel_size=3, strides=2, padding="same", kernel_initializer=initializer),
+            tf.keras.layers.LeakyReLU(0.2),
 
             # 4 x 4 x 1024
-            # tf.keras.layers.Conv2D(1024, kernel_size=3, strides=2, padding="same", kernel_initializer=initializer),
-            # tf.keras.layers.BatchNormalization(),
-            # tf.keras.layers.LeakyReLU(0.2),
+            tf.keras.layers.Conv2D(1024, kernel_size=3, strides=2, padding="same", kernel_initializer=initializer),
+            tf.keras.layers.LeakyReLU(0.2),
 
             # 1 x 1 x 1
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(units=1),
-            #tf.keras.layers.Conv2D(1, kernel_size=4, strides=2, padding="valid"),
+            tf.keras.layers.Dense(units=1, kernel_regularizer=tf.keras.regularizers.L2(L2_lambda)),
             tf.keras.layers.Activation(tf.nn.sigmoid)
         ]
 
@@ -128,13 +120,18 @@ class Discriminator(tf.keras.Model):
 
         label = tf.concat([y_tiled, y_rest], axis=1)
         x = tf.concat([x, label], axis=-1)
+
+        disc_features = None
         
 
         for disc_layer in self.disc:
 
             if isinstance(disc_layer, tf.keras.layers.BatchNormalization):
                 x = disc_layer(x, training_flag)
+            elif isinstance(disc_layer, tf.keras.layers.Flatten):
+                x = disc_layer(x)
+                disc_features = x
             else:
                 x = disc_layer(x)
 
-        return x
+        return disc_features, x
