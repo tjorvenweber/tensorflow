@@ -1,4 +1,4 @@
-# Project Title
+# Face-Aging with Conditional GANs
 
 This project aimed at rebuilding the face-aging and -rejuvenation technique proposed in "Face Aging with conditional GANs" by Antipov et al. 
 (https://ieeexplore.ieee.org/abstract/document/8296650?casa_token=9b5qUiOyCjgAAAAA:PIwhX1uVbNoWMKjovCJtfACLxalMDHleBKOKY3phQl5PWpjHHSglVxC4KITGXu6rDViY2EM0zdM)
